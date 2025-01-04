@@ -1,6 +1,6 @@
-function [dG,d2G] = WCA(r2,p)
-  E = p(1);
-  sigma2 = p(2)^2;
+function [dG,d2G] = WCA(r2,E_int,sigma)
+  E = E_int;
+  sigma2 = sigma^2;
   sz = size(r2);
   r2 = r2/sigma2;
 %   ind = r2 < 2^(1/3);
