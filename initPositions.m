@@ -1,11 +1,11 @@
-function posMol = initPositions(nMol, L_contact, initDist, nDim)
+function posMol = initPositions(nMol, L_ER, initDist, nDim)
 % INITPOSITIONS Initialize the positions of molecules in 1D or 2D.
 %
-%   posMol = INITPOSITIONS(nMol, L_contact, initDist, nDim)
+%   posMol = INITPOSITIONS(nMol, L_ER, initDist, nDim)
 %
 %   INPUTS:
 %       nMol       - Number of molecules (integer).
-%       L_contact  - Characteristic length of contact site (micrometers).
+%       L_ER       - Length of the ER (micrometers).
 %       initDist   - 'uniform' or 'random' (controls placement distribution).
 %       nDim       - 1 or 2, specifying dimensionality.
 %
@@ -36,32 +36,47 @@ function posMol = initPositions(nMol, L_contact, initDist, nDim)
     switch lower(initDist)
         case 'uniform'
             if nDim == 1
-                % Uniform in 1D: from 0 to L_contact
-                posMol = linspace(0, L_contact, nMol).';
+                % Uniform in 1D: from 0 to L_ER
+                posMol = linspace(0, L_ER, nMol+1).';  % Creates nMol+1 points
+                posMol = posMol(1:end-1);             % Drop the final point (L_ER)
             else
                 % Uniform in 2D
-                % We place molecules in a regular grid from (0,0) to (L_contact, L_contact).
+                % We place molecules in a regular grid from (0,0) to (L_ER, L_ER).
                 % For simplicity, we can do sqrt(nMol) points in x and y each
                 % (requires nMol to be a perfect square) or make an approximate grid.
                 %
                 % Here is one simple approach: we fill by rows/columns.
                 nPoints = ceil(sqrt(nMol)); 
-                xGrid   = linspace(0, L_contact, nPoints); 
-                yGrid   = linspace(0, L_contact, nPoints); 
+                xGrid   = linspace(0, L_ER, nPoints); 
+                yGrid   = linspace(0, L_ER, nPoints); 
                 [X, Y]  = meshgrid(xGrid, yGrid);
                 % Flatten:
                 gridPoints = [X(:), Y(:)];
                 % If we have more grid points than needed, just truncate:
                 posMol     = gridPoints(1:nMol, :);
             end
+        case 'step'
+            if nDim == 1
+                % We want to place all particles uniformly in a 2-um region
+                % centered in the middle of [0, L_ER].
+                % So the left edge is (L_ER - 2)/2, the right edge is (L_ER + 2)/2.
+                
+                leftEdge  = (L_ER - 2)/2;        % start of the 2 um region
+                rightEdge = leftEdge + 2;        % end of the 2 um region
+                
+                % Create nMol+1 points from leftEdge..rightEdge
+                posMol = linspace(leftEdge, rightEdge, nMol).';
+            else
+                error('step mode is only defined for 1D in this snippet');
+            end
 
         case 'random'
             if nDim == 1
-                % Random in 1D: uniform random from 0 to L_contact
-                posMol = L_contact * rand(nMol, 1);
+                % Random in 1D: uniform random from 0 to L_ER
+                posMol = L_ER * rand(nMol, 1);
             else
-                % Random in 2D: each coordinate uniform from 0 to L_contact
-                posMol = L_contact * rand(nMol, 2);
+                % Random in 2D: each coordinate uniform from 0 to L_ER
+                posMol = L_ER * rand(nMol, 2);
             end
 
         otherwise

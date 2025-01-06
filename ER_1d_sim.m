@@ -3,19 +3,19 @@
 % Simulation parameters
 
 
-param.steps    = 1000;  % total number of time steps
+param.steps    = 10000;  % total number of time steps
 param.ndims    = 1;     % dimension 
 
 param.L_ER     = 10;  % length of ER (um)
 param.L_contact= 2;  % length of contact site (um)
-param.sigma    = 1e-1; % size of the binding molecules 
-param.N        = 1000;  % number of molecules
+param.sigma    = 5e-2; % size of the binding molecules 
+param.N        = 200;  % number of molecules
 
 param.Dt       = param.sigma^2 / 3; %translational diffusivity
 param.kb       = 0.5;  % binding (association) probability or rate
 param.ku       = 0.3;  % unbinding (dissociation) probability or rate
 
-param.dt       = 1e-5 * param.sigma^2 / param.Dt;  % time step
+param.dt       = 2e-9 * param.sigma^2 / param.Dt;  % time step
 noise_strength = sqrt(2 * param.Dt * param.dt);
 
 kBT = 1;  % Thermal energy
@@ -24,7 +24,7 @@ kBT = 1;  % Thermal energy
 param.E_int = 1;  % interaction energy scale
 
 % Options for initial distribution
-param.initDist = 'uniform';  % or 'random', etc.
+param.initDist = 'step';  % or 'random', etc.
 
 % Visualization / plotting toggles
 param.doPlot   = true;  % or false to disable intermediate plotting
@@ -41,9 +41,12 @@ x = initPositions(param.N, param.L_ER, param.initDist, param.ndims);
 xout = zeros(param.N, param.ndims, param.steps);
 xout(:,:,1) = x;
 
-% WCA cutoff: typically r_c = 2^(1/6) * sigma
-rCut    = 2^(1/6) * param.sigma; 
-cellSize = rCut/2;
+% % WCA cutoff: typically r_c = 2^(1/6) * sigma
+% rCut    = 2^(1/6) * param.sigma; 
+% LJ cutoff: typically r_c = 2.5 * sigma
+rCut    = 2.5 * param.sigma; 
+
+cellSize = rCut;
 
 N = param.N;
 % Running simulation
@@ -55,7 +58,7 @@ for st = 2:param.steps
     % Prepare displacement
     dx = zeros(size(x));
 
-    dG = feval("WCA",r2,param.E_int,param.sigma);
+    dG = feval("LJ",r2,param.E_int,param.sigma);
 
     dGdri = 2*r.*dG;
     F = accumarray(neigh_i(:),-dGdri(:),[N,1]) + accumarray(neigh_j(:),dGdri(:),[N,1]);

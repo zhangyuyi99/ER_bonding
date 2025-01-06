@@ -46,7 +46,7 @@ function [iList, jList, dist, dist2] = neighborlist_1d(x, cutoff, cellSize, L_ER
     % clamp it just in case of borderline rounding:
     cellIndex(cellIndex >= nCell) = nCell;
     cellIndex(cellIndex < 1)      = 1;
-
+    cellIndex = round(cellIndex);
     % 4) Build a "cell -> list of particles" mapping
     % cellContent = cell(nCell, 1);
     % for p = 1:N
