@@ -70,6 +70,15 @@ function posMol = initPositions(nMol, L_ER, initDist, nDim)
                 error('step mode is only defined for 1D in this snippet');
             end
 
+        case 'delta'
+            if nDim == 1
+                % We want to place all particles in the middle of L_ER
+                
+                % Create nMol+1 points from leftEdge..rightEdge
+                posMol = 0.5*L_ER*ones(nMol,1);
+            else
+                error('delta mode is only defined for 1D in this snippet');
+            end
         case 'random'
             if nDim == 1
                 % Random in 1D: uniform random from 0 to L_ER

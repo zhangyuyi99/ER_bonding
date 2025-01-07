@@ -9,7 +9,7 @@ function visualize_1d()
     % Adjust bin size, frequency of frames, etc. as needed.
 
     % 1) Load results
-    data = load('test_result.mat', 'xout', 'param');
+    data = load('result\test_result.mat', 'xout', 'param');
     if ~isfield(data, 'xout') || ~isfield(data, 'param')
         error('Missing xout or param in test_result.mat');
     end
@@ -23,7 +23,7 @@ function visualize_1d()
 
     % Setup for binning
     L = param.L_ER;
-    nBins = 50;          % number of histogram bins (feel free to change)
+    nBins = 100;          % number of histogram bins (feel free to change)
     edges = linspace(0, L, nBins+1);   % bin edges from 0..L
     midpoints = 0.5 * (edges(1:end-1) + edges(2:end));
 
@@ -34,7 +34,7 @@ function visualize_1d()
     doVideo = true;   % or false if you just want to view
     if doVideo
         % Option 1: save to an MP4
-        v = VideoWriter('ER_sim.mp4','MPEG-4');
+        v = VideoWriter('result\ER_sim.mp4','MPEG-4');
         open(v);
         % (Alternatively, you can do a GIF approach using imwrite in a loop.)
     end
@@ -61,10 +61,10 @@ function visualize_1d()
         title(sprintf('Step %d / %d', st, totalSteps));
         xlabel('Position along ER');
         ylabel('Particle count');
-        ylim([0, 100]);  % a little headroom
+        ylim([0, 20]);  % a little headroom
 
         drawnow;
-        pause(0.05);   % short pause for interactive viewing
+        pause(0.01);   % short pause for interactive viewing
 
         if doVideo
             frame = getframe(fig);

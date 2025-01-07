@@ -43,17 +43,29 @@ function [iList, jList, dist, dist2] = neighborlist_1d(x, cutoff, cellSize, L_ER
     cellIndex = floor(x / cellSize);
     % cell index range: 1 .. nCell, +1 for MATLAB cell indexing
     cellIndex = cellIndex + 1; 
+    cellIndex = round(cellIndex);
     % clamp it just in case of borderline rounding:
     cellIndex(cellIndex >= nCell) = nCell;
     cellIndex(cellIndex < 1)      = 1;
-    cellIndex = round(cellIndex);
+    
+    cellIndex = int32(cellIndex);
     % 4) Build a "cell -> list of particles" mapping
     % cellContent = cell(nCell, 1);
     % for p = 1:N
     %     cInd = cellIndex(p); 
     %     cellContent{cInd} = [cellContent{cInd}, p];
     % end
+    
+    % cellContent = accumarray( cellIndex(:), (1:N)', [nCell, 1], @(pts){pts}, {[]} );
+
+    try
     cellContent = accumarray( cellIndex(:), (1:N)', [nCell, 1], @(pts){pts}, {[]} );
+    catch ME
+        fprintf('Encountered an error in accumarray:\n%s\n', ME.message);
+        keyboard;  % Drop to debug prompt, letting you inspect `cellIndex`, etc.
+        % (Optionally you can rethrow(ME) if you want to propagate the error.)
+    end
+
 
     % 5) For each cell, we only need to check neighbor candidates in:
     %    that cell, the cell to the left, and the cell to the right.

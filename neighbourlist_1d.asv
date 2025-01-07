@@ -1,4 +1,4 @@
-function [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
+function [iList, jList, dist, dist2] = neighborlist_1d(x, cutoff, cellSize, L_ER)
 % NEIGHBORLIST_1D  Return neighbor pairs (i,j) whose separation is within cutoff in 1D.
 %
 %   [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
@@ -24,6 +24,7 @@ function [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
     iList = [];
     jList = [];
     dist  = [];
+    dist2  = [];
 
     % Optionally ensure positions are within [0, L_ER], if periodic:
     % x = mod(x, L_ER);
@@ -45,14 +46,24 @@ function [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
     % clamp it just in case of borderline rounding:
     cellIndex(cellIndex >= nCell) = nCell;
     cellIndex(cellIndex < 1)      = 1;
-
+    
     % 4) Build a "cell -> list of particles" mapping
     % cellContent = cell(nCell, 1);
     % for p = 1:N
     %     cInd = cellIndex(p); 
     %     cellContent{cInd} = [cellContent{cInd}, p];
     % end
+    
+    % cellContent = accumarray( cellIndex(:), (1:N)', [nCell, 1], @(pts){pts}, {[]} );
+
+    try
     cellContent = accumarray( cellIndex(:), (1:N)', [nCell, 1], @(pts){pts}, {[]} );
+    catch ME
+        fprintf('Encountered an error in accumarray:\n%s\n', ME.message);
+        keyboard;  % Drop to debug prompt, letting you inspect `cellIndex`, etc.
+        % (Optionally you can rethrow(ME) if you want to propagate the error.)
+    end
+
 
     % 5) For each cell, we only need to check neighbor candidates in:
     %    that cell, the cell to the left, and the cell to the right.
@@ -78,9 +89,10 @@ function [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
         allNeighParts = [];
         for nc = 1:numel(neighCells)
             c2 = neighCells(nc);
-            allNeighParts = [allNeighParts, cellContent{c2}];
+            % particles_in_c2 = cellContent{c2};
+            allNeighParts = [allNeighParts, cellContent{c2}'];
         end
-        allNeighParts = allNeighParts(:);
+        % allNeighParts = allNeighParts(:);
 
         % Now do pairwise checks between partC and allNeighParts
         % but we want i < j to avoid duplicates
@@ -104,6 +116,7 @@ function [iList, jList, dist] = neighborlist_1d(x, cutoff, cellSize, L_ER)
                     iList = [iList, iP];
                     jList = [jList, jP];
                     dist  = [dist, r];
+                    dist2  = [dist2, r^2];
                 end
             end
         end
